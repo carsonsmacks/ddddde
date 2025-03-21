@@ -1,36 +1,133 @@
 <!DOCTYPE html>
-<html>
- 
+<html lang="en">
 <head>
-   <title>Hapara Bypass</title>
-   <style type="text/css">
-       html {
-           overflow: auto;
-       }
-         
-       html,
-       body,
-       div,
-       iframe {
-           margin: 0px;
-           padding: 0px;
-           height: 100%;
-           border: none;
-       }
-         
-       iframe {
-           display: block;
-           width: 100%;
-           border: none;
-           overflow-y: auto;
-           overflow-x: hidden;
-       }
-   </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shorts Scroller with Next Button</title>
+
+    <!-- Inline Manifest -->
+    <link rel="manifest" href="data:application/manifest+json,{
+        \"name\": \"Shorts Scroller\",
+        \"short_name\": \"Shorts\",
+        \"start_url\": \"/\",
+        \"display\": \"standalone\",
+        \"background_color\": \"#000000\",
+        \"theme_color\": \"#000000\",
+        \"icons\": [
+            {\"src\": \"/icon.png\", \"sizes\": \"192x192\", \"type\": \"image/png\"},
+            {\"src\": \"/icon-512.png\", \"sizes\": \"512x512\", \"type\": \"image/png\"}
+        ]
+    }">
+
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: black;
+            color: white;
+            height: 100vh;
+            margin: 0;
+        }
+        iframe {
+            width: 90%;
+            height: 80%;
+            border: none;
+            border-radius: 10px;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-   <iframe src="https://now.gg"
-        
- </iframe>
+    <div id="player"></div>
+    <button id="next-btn">Next</button>
+
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let player;
+        let currentIndex = 0;
+
+        // YouTube API ready function
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '480',
+                width: '853',
+                playerVars: {
+                    listType: 'playlist',
+                    list: 'PLI56Ki8iIHgpBdxKIFubbO72wTYnM0TAx', // Replace with your playlist ID
+                    autoplay: 1,
+                    mute: 1
+                }
+            });
+        }
+
+        // Next video logic
+        document.getElementById("next-btn").addEventListener("click", () => {
+            currentIndex++;
+            player.nextVideo();
+        });
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('Service Worker registered:', reg))
+            .catch(err => console.error('Service Worker error:', err));
+        }
+    </script>
+
+    <!-- Inline Service Worker Registration -->
+    <script>
+        const swCode = `
+            const CACHE_NAME = 'shorts-cache-v1';
+            const ASSETS = ['/', '/index.html', '/icon.png', '/icon-512.png'];
+
+            self.addEventListener('install', event => {
+                event.waitUntil(
+                    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+                );
+            });
+
+            self.addEventListener('activate', event => {
+                event.waitUntil(
+                    caches.keys().then(keys => 
+                        Promise.all(keys.map(key => {
+                            if (key !== CACHE_NAME) caches.delete(key);
+                        }))
+                    )
+                );
+            });
+
+            self.addEventListener('fetch', event => {
+                event.respondWith(
+                    caches.match(event.request).then(response => response || fetch(event.request))
+                );
+            });
+        `;
+
+        if ('serviceWorker' in navigator) {
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            
+            navigator.serviceWorker.register(swUrl)
+            .then(registration => {
+                console.log('Service Worker registered with scope:', registration.scope);
+            })
+            .catch(error => {
+                console.error('Service Worker registration failed:', error);
+            });
+        }
+    </script>
 </body>
- 
-</html> 
+</html>
