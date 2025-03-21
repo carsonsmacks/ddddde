@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>carson</title>
+    <title>Shorts Scroller with Next & Back Buttons</title>
 
     <!-- Manifest for PWA -->
     <link rel="manifest" href="/manifest.json">
@@ -34,12 +34,22 @@
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            margin: 5px;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
         }
     </style>
 </head>
 <body>
     <div id="player"></div>
-    <button id="next-btn">Next</button>
+    
+    <!-- Button Container -->
+    <div class="button-container">
+        <button id="back-btn">Back</button>
+        <button id="next-btn">Next</button>
+    </div>
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -54,7 +64,7 @@
                 width: '853',
                 playerVars: {
                     listType: 'playlist',
-                    list: 'PLI56Ki8iIHgpBdxKIFubbO72wTYnM0TAx', // Replace with your playlist ID
+                    list: 'PL3RN74kSDDcibI-VWFrYvjI_F4asqPjYV', // Replace with your playlist ID
                     autoplay: 1,
                     mute: 1
                 }
@@ -65,6 +75,16 @@
         document.getElementById("next-btn").addEventListener("click", () => {
             currentIndex++;
             player.nextVideo();
+        });
+
+        // Back video logic
+        document.getElementById("back-btn").addEventListener("click", () => {
+            if (currentIndex > 0) { // Prevent negative index
+                currentIndex--;
+                player.previousVideo();
+            } else {
+                alert("You're at the first video!");
+            }
         });
 
         // Register Service Worker
